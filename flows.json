@@ -1,0 +1,164 @@
+[
+    {
+        "id": "1e25805aba64f9ba",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "14183b0fa4c97a78",
+        "type": "function",
+        "z": "1e25805aba64f9ba",
+        "name": "System Parameters",
+        "func": "let system_params = `\n### Talimatlar:\n\n\"Asaf-FlowTrack\", üretim hattı üzerindeki makinelerin çalışma süresi, \narıza kayıtları ve bakım takibini yapan bir masaüstü uygulamasıdır. \nFirmalar bu uygulamayla hem canlı verileri izler hem de geçmişe yönelik analizler yapabilir.\n\nConfigPanel, uygulamanın başlangıcında yüklü olan yapılandırma dosyalarını düzenlemek için kullanılır. \nPanelde yapılan değişiklikler anlık olarak config.json dosyasına yazılır. \nŞifreli alanlar 'EncryptedConfigManager' sınıfı tarafından çözümlenir.\n\nUygulama içerisinde oluşan hatalar logs/error.log dosyasına yazılır. \nEğer 'logLevel' DEBUG olarak ayarlanmışsa, debug.log dosyası da dolacaktır. \nLog seviyeleri: DEBUG, INFO, WARNING ve ERROR’dır.\n\nUygulama açılırken LicenseChecker, internet bağlantısı aracılığıyla lisans anahtarının geçerliliğini doğrular. \nEğer bağlantı sağlanamazsa, sistem son başarılı doğrulamanın tarihine göre lisansı offline modda kabul eder.\n\n`;\n\nflow.set('system_params', system_params)\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 410,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6ba428139ec6e290",
+        "type": "function",
+        "z": "1e25805aba64f9ba",
+        "name": "Gemini",
+        "func": "const AI = googleGenerativeAi;\nconst GoogleGenerativeAI = AI.GoogleGenerativeAI;\n\nconst genAI = new GoogleGenerativeAI(\"YOUR_API_KEY\");\nconst system_inst = flow.get('system_params')\n\n/**\n* @param {any} message\n*/\nasync function run(message) {\n    // For text-only input, use the gemini-pro model\n  const model = genAI.getGenerativeModel({\n                                             model: \"gemini-2.0-flash\",\n                                             systemInstruction: system_inst,\n                                             generation_config:{\"temperature\": 0.0} \n                                           });\n\n    const result = await model.generateContent(message);\n    //const result = await chat.sendMessage(message);\n    const response = await result.response;\n    const text = response.text();\n    node.send({\"payload\":text, \"role\": \"model\"});\n}\n\nrun(msg.payload);",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "googleGenerativeAi",
+                "module": "@google/generative-ai"
+            }
+        ],
+        "x": 600,
+        "y": 200,
+        "wires": [
+            [
+                "4d7dce52bf96b51d"
+            ]
+        ]
+    },
+    {
+        "id": "f0140e8ff5adfb96",
+        "type": "inject",
+        "z": "1e25805aba64f9ba",
+        "name": "RUN",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 190,
+        "y": 200,
+        "wires": [
+            [
+                "9ce3c630c3e2958f",
+                "14183b0fa4c97a78"
+            ]
+        ]
+    },
+    {
+        "id": "9ce3c630c3e2958f",
+        "type": "function",
+        "z": "1e25805aba64f9ba",
+        "name": "User Prompt",
+        "func": "msg.payload = 'Asaf-FlowTrack yazılımı nedir?'\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 200,
+        "wires": [
+            [
+                "6ba428139ec6e290"
+            ]
+        ]
+    },
+    {
+        "id": "4cbc7d44f7a68f3c",
+        "type": "comment",
+        "z": "1e25805aba64f9ba",
+        "name": "Ürün Teknik Destek Asistanı",
+        "info": "## Bir yazılım firması, kendi geliştirdiği bir masaüstü programın destek dökümanlarını (örneğin ConfigPanel, LogSystem, LicenseChecker) yapay zeka destekli bir asistana yüklemek istiyor. Kullanıcılar bu asistana uygulamayla ilgili sorular soracak ve sistem yalnızca bu belgelerden yararlanarak cevap verecek.",
+        "x": 440,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "4d7dce52bf96b51d",
+        "type": "debug",
+        "z": "1e25805aba64f9ba",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 790,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "3b526e09200bcf1f",
+        "type": "change",
+        "z": "1e25805aba64f9ba",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "system_params",
+                "pt": "flow",
+                "to": "",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 430,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f21d34a1e3f6af26",
+        "type": "comment",
+        "z": "1e25805aba64f9ba",
+        "name": "Gemini Developer API",
+        "info": "https://ai.google.dev/gemini-api/docs?hl=tr",
+        "x": 220,
+        "y": 320,
+        "wires": []
+    }
+]
